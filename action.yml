@@ -21,6 +21,10 @@ inputs:
     description: 'Deploy KP'
     required: true
     type: string
+  ssh_private_key:
+    description: 'SSH private key'
+    required: true
+    type: string
 
 runs:
   using: 'composite'
@@ -31,7 +35,7 @@ runs:
     - name: Setup GH SSH
       uses: webfactory/ssh-agent@v0.7.0
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        ssh-private-key: ${{ inputs.ssh_private_key }}
 
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -42,25 +46,35 @@ runs:
     - name: Install Solana
       run: |
         sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+      shell: bash
 
     - name: Update Solana PATH
-      run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      run: |
+        echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
       shell: bash
 
     - name: Install Anchor
       run: |
         cargo install --git https://github.com/coral-xyz/anchor avm --locked --force && avm install latest && avm use latest && anchor --version
+      shell: bash
 
     - name: Set program PID to devnet PID
-      run: echo "${{ inputs.pid_env_var }}=${{ inputs.pid }}" >> $GITHUB_ENV
+      run: |
+        echo "${{ inputs.pid_env_var }}=${{ inputs.pid }}" >> $GITHUB_ENV
+      shell: bash
 
     - name: Build
-      run: anchor build
+      run: |
+        anchor build
+      shell: bash
 
     - name: Set Solana RPC
-      run: solana config set --url ${{ inputs.rpc }}
+      run: |
+        solana config set --url ${{ inputs.rpc }}
+      shell: bash
 
     - name: Deploy program
       run: |
         echo "${{ inputs.kp }}" > solana-keypair.json
         solana program deploy --keypair solana-keypair.json target/deploy/${{ inputs.program_name }}.so --program-id ${{ inputs.pid }}
+      shell: bash
