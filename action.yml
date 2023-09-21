@@ -1,54 +1,47 @@
-name: Setup anchor and build and deploy program
+name: Setup anchor and build
 
-on:
-  push:
-    branches:
-      - main
+inputs:
+  rpc:
+    description: 'rpc'
+    required: true
+    type: string
+  pid:
+    description: 'program PID'
+    required: true
+    type: string
+  pid_env_var:
+    description: 'program PID env var'
+    required: true
+    type: string
+  program_name:
+    description: 'program name'
+    required: true
+    type: string
+  kp:
+    description: 'Deploy KP'
+    required: true
+    type: string
+  ssh_private_key:
+    description: 'SSH private key'
+    required: true
+    type: string
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    inputs:
-      rpc:
-        description: 'rpc'
-        required: true
-        type: string
-      pid:
-        description: 'program PID'
-        required: true
-        type: string
-      pid_env_var:
-        description: 'program PID env var'
-        required: true
-        type: string
-      program_name:
-        description: 'program name'
-        required: true
-        type: string
-      kp:
-        description: 'Deploy KP'
-        required: true
-        type: string
-      ssh_private_key:
-        description: 'SSH private key'
-        required: true
-        type: string
+runs:
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Setup program
+      uses: bridgesplit/anchor-setup-gh-action@v1.0.2
+      with:
+        ssh-private-key: ${{ inputs.ssh_private_key }}
+        rpc: ${{ inputs.rpc }}
+        pid: ${{ inputs.pid }}
+        pid_env_var: ${{ inputs.pid_env_var }}
+        program_name: ${{ inputs.program_name }}
 
-      - name: Setup program
-        uses: bridgesplit/anchor-setup-gh-action@v1.0.2
-        with:
-          ssh-private-key: ${{ inputs.ssh_private_key }}
-          rpc: ${{ inputs.rpc }}
-          pid: ${{ inputs.pid }}
-          pid_env_var: ${{ inputs.pid_env_var }}
-          program_name: ${{ inputs.program_name }}
-
-      - name: Deploy program
-        run: |
-          echo "${{ inputs.kp }}" > solana-keypair.json
-          solana program deploy --keypair solana-keypair.json target/deploy/${{ inputs.program_name }}.so --program-id ${{ inputs.pid }}
-        shell: bash
+    - name: Deploy program
+      run: |
+        echo "${{ inputs.kp }}" > solana-keypair.json
+        solana program deploy --keypair solana-keypair.json target/deploy/${{ inputs.program_name }}.so --program-id ${{ inputs.pid }}
+      shell: bash
