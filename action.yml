@@ -33,7 +33,7 @@ runs:
       uses: actions/checkout@v2
 
     - name: Setup program
-      uses: bridgesplit/anchor-setup-gh-action@v1.0.3
+      uses: bridgesplit/anchor-setup-gh-action@v1.0.4
       with:
         ssh_private_key: ${{ inputs.ssh_private_key }}
         rpc: ${{ inputs.rpc }}
