@@ -24,43 +24,43 @@ inputs:
 
 runs:
   using: 'composite'
-  setup-and-build:
-    runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-     
-      - name: Setup GH SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-            ssh-private-key: ${{secrets.SSH_PRIVATE_KEY}}
+    - name: Setup GH SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-      
-      - name: Install Solana
-        run: |
-          sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-          
-      - name: Update Solana PATH
-        run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH 
-        shell: bash
-        
-      - name: Install Anchor
-        run: | 
-          cargo install --git https://github.com/coral-xyz/anchor avm --locked --force && avm install latest && avm use latest && anchor --version
-      - name: Set program PID to devnet PID
-        run: echo "${{pid_env_var}}=${{inputs.pid}}" >> $GITHUB_ENV
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
 
-      - name: Build
-        run: anchor build
-      - name: Set Solana RPC
-        run: solana config set --url ${{ inputs.rpc }}
-      - name: Deploy program
-           run: |
-                  echo "${{ inputs.kp }}" > solana-keypair.json
-                  solana program deploy --keypair solana-keypair.json target/deploy/${{inputs.program_name}}.so --program-id ${{inputs.pid}}
+    - name: Install Solana
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+
+    - name: Update Solana PATH
+      run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      shell: bash
+
+    - name: Install Anchor
+      run: |
+        cargo install --git https://github.com/coral-xyz/anchor avm --locked --force && avm install latest && avm use latest && anchor --version
+
+    - name: Set program PID to devnet PID
+      run: echo "${{ inputs.pid_env_var }}=${{ inputs.pid }}" >> $GITHUB_ENV
+
+    - name: Build
+      run: anchor build
+
+    - name: Set Solana RPC
+      run: solana config set --url ${{ inputs.rpc }}
+
+    - name: Deploy program
+      run: |
+        echo "${{ inputs.kp }}" > solana-keypair.json
+        solana program deploy --keypair solana-keypair.json target/deploy/${{ inputs.program_name }}.so --program-id ${{ inputs.pid }}
