@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup program
-        uses: bridgesplit/anchor-setup-gh-action@v1.0.0
+        uses: bridgesplit/anchor-setup-gh-action@v1.0.2
         with:
           ssh-private-key: ${{ inputs.ssh_private_key }}
           rpc: ${{ inputs.rpc }}
